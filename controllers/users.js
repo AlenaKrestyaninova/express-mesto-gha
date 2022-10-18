@@ -63,6 +63,9 @@ const updateProfile = (req, res) => {
       if (err.name === 'CastError') {
         return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный _id', err });
       }
+      if (err.name === 'ValidationError') {
+        return res.status(WRONG_DATA_CODE).send({ message: 'Ошибка валидации' });
+      }
       return res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };

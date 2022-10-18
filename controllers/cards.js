@@ -1,3 +1,8 @@
+const {
+  WRONG_DATA_CODE, // 400
+  WRONG_ID_CODE, // 404
+  ERROR_SERVER_CODE, // 500
+} = require('../utils/constants');
 const Card = require('../models/card');
 
 //  Получаем все карточки  //
@@ -8,7 +13,7 @@ const getCards = (req, res) => {
       res.send(cards);
     })
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };
 
@@ -22,10 +27,10 @@ const createCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Ошибка валидации', err });
+        res.status(WRONG_DATA_CODE).send({ message: 'Ошибка валидации', err });
         return;
       }
-      res.status(500).send({ message: err.message });
+      res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };
 
@@ -34,18 +39,20 @@ const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (card === null) {
-        res.status(404).send({ message: 'Card with this id not found' });
+        res.status(WRONG_ID_CODE).send({ message: 'Card with this id not found' });
       }
       res.send(card);
     })
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      if (err.name === 'CastError') {
+        return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный id карточки', err });
+      }
+      return res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };
 
 //  Ставим лайк  //
 const likeCard = (req, res) => {
-  console.log(req.params.cardId);
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -53,12 +60,15 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (card === null) {
-        res.status(404).send({ message: 'Card with this id not found' });
+        res.status(WRONG_ID_CODE).send({ message: 'Card with this id not found' });
       }
       res.send(card);
     })
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      if (err.name === 'CastError') {
+        return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный id карточки', err });
+      }
+      return res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };
 
@@ -71,7 +81,7 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => res.send(card))
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };
 
