@@ -39,7 +39,7 @@ const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (card === null) {
-        res.status(WRONG_ID_CODE).send({ message: 'Card with this id not found' });
+        res.status(WRONG_ID_CODE).send({ message: 'Карточка с таким id не найдена' });
       }
       res.send(card);
     })
@@ -60,7 +60,7 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (card === null) {
-        res.status(WRONG_ID_CODE).send({ message: 'Card with this id not found' });
+        res.status(WRONG_ID_CODE).send({ message: 'Карточка с таким id не найдена' });
       }
       res.send(card);
     })
@@ -79,9 +79,17 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (card === null) {
+        res.status(WRONG_ID_CODE).send({ message: 'Карточка с таким id не найдена' });
+      }
+      res.send(card);
+    })
     .catch((err) => {
-      res.status(ERROR_SERVER_CODE).send({ message: err.message });
+      if (err.name === 'CastError') {
+        return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный id карточки', err });
+      }
+      return res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };
 

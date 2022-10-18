@@ -1,3 +1,4 @@
+const { default: mongoose } = require('mongoose');
 const User = require('../models/user');
 const {
   WRONG_DATA_CODE, // 400
@@ -60,10 +61,10 @@ const updateProfile = (req, res) => {
       if (err.message === 'NotFound') {
         return res.status(WRONG_ID_CODE).send({ message: 'Пользователь с указанным _id не найден' });
       }
-      if (err.name === 'CastError') {
+      if (err instanceof mongoose.Error.CastError) {
         return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный _id', err });
       }
-      if (err.name === 'ValidationError') {
+      if (err instanceof mongoose.Error.ValidationError) {
         return res.status(WRONG_DATA_CODE).send({ message: 'Ошибка валидации' });
       }
       return res.status(ERROR_SERVER_CODE).send({ message: err.message });
