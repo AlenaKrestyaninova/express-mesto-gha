@@ -50,10 +50,12 @@ const getUserById = (req, res) => {
 
 //  Обновляем профиль  //
 const updateProfile = (req, res) => {
-  User.findByIdAndUpdate(req.user._id, req.body, {
-    new: true,
-    runValidation: true,
-  })
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  )
     .then((user) => {
       res.send(user);
     })
