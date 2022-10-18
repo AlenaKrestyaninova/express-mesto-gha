@@ -18,7 +18,7 @@ const createCard = (req, res) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner })
     .then((card) => {
-      res.send({ data: card });
+      res.send(card);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -36,6 +36,7 @@ const deleteCard = (req, res) => {
       if (card === null) {
         res.status(404).send({ message: 'Card with this id not found' });
       }
+      res.send(card);
     })
     .catch((err) => {
       res.status(500).send({ message: err.message });
@@ -44,13 +45,17 @@ const deleteCard = (req, res) => {
 
 //  Ставим лайк  //
 const likeCard = (req, res) => {
+  console.log(req.params.cardId);
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
     .then((card) => {
-      res.send({ data: card });
+      if (card === null) {
+        res.status(404).send({ message: 'Card with this id not found' });
+      }
+      res.send(card);
     })
     .catch((err) => {
       res.status(500).send({ message: err.message });
@@ -64,7 +69,7 @@ const dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.send(card))
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });

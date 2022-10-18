@@ -54,7 +54,7 @@ const updateProfile = (req, res) => {
     runValidation: true,
   })
     .then((user) => {
-      res.send({ data: user });
+      res.send(user);
     })
     .catch((err) => {
       if (err.message === 'NotFound') {
@@ -74,7 +74,7 @@ const updateAvatar = (req, res) => {
     { avatar: req.body.avatar },
     { new: true, runValidators: true },
   )
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.send(user))
     .catch((err) => {
       res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });

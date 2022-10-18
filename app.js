@@ -11,15 +11,15 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cardsRouter);
-app.use(usersRouter);
-
 app.use((req, res, next) => {
   req.user = {
     _id: '634d96107b42e74be56fa4cc',
   };
   next();
 });
+
+app.use(cardsRouter);
+app.use(usersRouter);
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
