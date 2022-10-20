@@ -40,6 +40,7 @@ const deleteCard = (req, res) => {
     .then((card) => {
       if (card === null) {
         res.status(NOT_FOUND_CODE).send({ message: 'Карточка с таким id не найдена' });
+        return;
       }
       res.send(card);
     })
