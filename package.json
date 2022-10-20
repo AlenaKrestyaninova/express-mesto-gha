@@ -1,7 +1,7 @@
 {
   "name": "express-mesto-gha",
   "version": "1.0.0",
-  "description": "[![Tests](https://github.com/AlenaKrestyaninova/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/AlenaKrestyaninova/express-mesto-gha/actions/workflows/tests-13-sprint.yml) [![Tests](https://github.com/AlenaKrestyaninova/express-mesto-gha/actions/workflows/tests-14-sprint.yml/badge.svg)](https://github.com/AlenaKrestyaninova/express-mesto-gha/actions/workflows/tests-14-sprint.yml)\r # Проект Mesto фронтенд + бэкенд",
+  "description": "Backend part of 'Mesto' project",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon app.js",

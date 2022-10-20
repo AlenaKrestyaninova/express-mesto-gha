@@ -1,6 +1,6 @@
 const {
   WRONG_DATA_CODE, // 400
-  WRONG_ID_CODE, // 404
+  NOT_FOUND_CODE, // 404
   ERROR_SERVER_CODE, // 500
 } = require('../utils/constants');
 const Card = require('../models/card');
@@ -39,7 +39,7 @@ const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => {
       if (card === null) {
-        res.status(WRONG_ID_CODE).send({ message: 'Карточка с таким id не найдена' });
+        res.status(NOT_FOUND_CODE).send({ message: 'Карточка с таким id не найдена' });
       }
       res.send(card);
     })
@@ -60,7 +60,8 @@ const likeCard = (req, res) => {
   )
     .then((card) => {
       if (card === null) {
-        res.status(WRONG_ID_CODE).send({ message: 'Карточка с таким id не найдена' });
+        res.status(NOT_FOUND_CODE).send({ message: 'Карточка с таким id не найдена' });
+        return;
       }
       res.send(card);
     })
@@ -81,7 +82,8 @@ const dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (card === null) {
-        res.status(WRONG_ID_CODE).send({ message: 'Карточка с таким id не найдена' });
+        res.status(NOT_FOUND_CODE).send({ message: 'Карточка с таким id не найдена' });
+        return;
       }
       res.send(card);
     })

@@ -2,7 +2,7 @@ const { default: mongoose } = require('mongoose');
 const User = require('../models/user');
 const {
   WRONG_DATA_CODE, // 400
-  WRONG_ID_CODE, // 404
+  NOT_FOUND_CODE, // 404
   ERROR_SERVER_CODE, // 500
 } = require('../utils/constants');
 
@@ -39,7 +39,7 @@ const getUserById = (req, res) => {
     .then((user) => res.send(user))
     .catch((err) => {
       if (err.message === 'NotFound') {
-        return res.status(WRONG_ID_CODE).send({ message: 'Пользователь с указанным _id не найден' });
+        return res.status(NOT_FOUND_CODE).send({ message: 'Пользователь с указанным _id не найден' });
       }
       if (err.name === 'CastError') {
         return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный _id', err });
@@ -57,12 +57,13 @@ const updateProfile = (req, res) => {
     { new: true, runValidators: true },
   )
     .then((user) => {
+      if (!user) {
+        res.status(NOT_FOUND_CODE).send({ message: 'Пользователь с указанным _id не найден' });
+        return;
+      }
       res.send(user);
     })
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        return res.status(WRONG_ID_CODE).send({ message: 'Пользователь с указанным _id не найден' });
-      }
       if (err instanceof mongoose.Error.CastError) {
         return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный _id', err });
       }
@@ -80,8 +81,18 @@ const updateAvatar = (req, res) => {
     { avatar: req.body.avatar },
     { new: true, runValidators: true },
   )
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        res.status(NOT_FOUND_CODE).send({ message: 'Пользователь с указанным _id не найден' });
+        return;
+      }
+      res.send(user);
+    })
     .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(WRONG_DATA_CODE).send({ message: 'Ошибка валидации', err });
+        return;
+      }
       res.status(ERROR_SERVER_CODE).send({ message: err.message });
     });
 };
