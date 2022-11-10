@@ -15,7 +15,7 @@ const login = (req, res) => {
   if (!email || !password) {
     res.status(WRONG_DATA_CODE).send({ message: 'password or email empty' });
   }
-  User.findOne({ email })
+  User.findOne({ email }).select('+password')
     .then((user) => {
       bcrypt.compare(password, user.password)
         .then((matched) => {
