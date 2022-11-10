@@ -65,7 +65,6 @@ const getUserById = (req, res) => {
 
 //  Получаем текущего пользователя  //
 const getCurrentUser = (req, res) => {
-  console.log(req.user);
   User.findById(req.user._id).orFail(new Error('NotFound'))
     .then((user) => {
       if (!user) {
