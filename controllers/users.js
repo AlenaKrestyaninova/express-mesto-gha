@@ -1,17 +1,32 @@
 const { default: mongoose } = require('mongoose');
+const bcrypt = require('bcryptjs');
+// const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const {
   WRONG_DATA_CODE, // 400
+  UNAUTHORIZED, // 401
   NOT_FOUND_CODE, // 404
   ERROR_SERVER_CODE, // 500
 } = require('../utils/constants');
 
 //  Создаем пользователя  //
 const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  if (!email || !password) {
+    res.status(WRONG_DATA_CODE).send({ message: 'password or email empty' });
+  }
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      email,
+      password: hash,
+      name,
+      about,
+      avatar,
+    }))
     .then((user) => {
-      res.send({ data: user });
+      res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -37,6 +52,33 @@ const getUsers = (req, res) => {
 const getUserById = (req, res) => {
   User.findById(req.params.userId).orFail(new Error('NotFound'))
     .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res.status(NOT_FOUND_CODE).send({ message: 'Пользователь с указанным _id не найден' });
+      }
+      if (err.name === 'CastError') {
+        return res.status(WRONG_DATA_CODE).send({ message: 'Некорректный _id из getUserById', err });
+      }
+      return res.status(ERROR_SERVER_CODE).send({ message: err.message });
+    });
+};
+
+//  Получаем текущего пользователя  //
+const getCurrentUser = (req, res) => {
+  console.log(req.user);
+  User.findById(req.user._id).orFail(new Error('NotFound'))
+    .then((user) => {
+      if (!user) {
+        return res.status(UNAUTHORIZED).send('Not correct data');
+      }
+      return res.send({
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+        _id: user._id,
+      });
+    })
     .catch((err) => {
       if (err.message === 'NotFound') {
         return res.status(NOT_FOUND_CODE).send({ message: 'Пользователь с указанным _id не найден' });
@@ -101,6 +143,7 @@ module.exports = {
   createUser,
   getUsers,
   getUserById,
+  getCurrentUser,
   updateProfile,
   updateAvatar,
 };
