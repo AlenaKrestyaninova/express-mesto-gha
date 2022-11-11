@@ -5,6 +5,7 @@ const User = require('../models/user');
 const NotFoundError = require('../utils/errors/NotFoundError'); // 404
 const ValidationError = require('../utils/errors/ValidationError'); // 400
 const UnauthorizedError = require('../utils/errors/UnauthorizedError'); // 401
+const UserExistError = require('../utils/errors/UserExistError'); // 409
 
 //  Создаем пользователя  //
 const createUser = (req, res, next) => {
@@ -23,13 +24,23 @@ const createUser = (req, res, next) => {
       about,
       avatar,
     }))
-    .then((user) => {
-      res.send(user);
+    .then(() => {
+      res.send({
+        user: {
+          email,
+          name,
+          about,
+          avatar,
+        },
+      });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError('Not correct data'));
         return;
+      }
+      if (err.code === 409) {
+        next(new UserExistError(`${req.body.email} - такой пользователь уже зарегистрирован`));
       }
       next(err);
     });
@@ -50,8 +61,8 @@ const getUsers = (req, res, next) => {
 const getUserById = (req, res, next) => {
   User.findById(req.params.userId).orFail(new Error('NotFound'))
     .then((user) => {
-      if (user == null) {
-        next(new NotFoundError('User with this id not found'));
+      if (!user) {
+        next(new NotFoundError(`Пользователь с id ${req.params.userId} не найден`));
         return;
       }
       res.send(user);

@@ -36,17 +36,19 @@ const createCard = (req, res, next) => {
 
 //  Удаляем карточку  //
 const deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
-      if (card === null) {
+      if (!card) {
         next(new NotFoundError('Card with this id not found'));
         return;
       }
-      if (card.owner._id.toString() !== req.user.toString()) {
+      if (req.user._id !== card.owner._id.toString()) {
         next(new NotAllowedError('You can not delete this card'));
         return;
       }
-      res.send(card);
+      Card.findByIdAndRemove(req.params.cardId)
+        .then(() => { res.send(card); })
+        .catch((err) => { next(err); });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -69,7 +71,7 @@ const likeCard = (req, res, next) => {
         next(new NotFoundError('Card with this id not found'));
         return;
       }
-      res.send(card);
+      res.send({ message: 'Like added' });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -92,7 +94,7 @@ const dislikeCard = (req, res, next) => {
         next(new NotFoundError('Card with this id not found'));
         return;
       }
-      res.send(card);
+      res.send({ message: 'Like deleted' });
     })
     .catch((err) => {
       if (err.name === 'CastError') {

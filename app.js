@@ -27,9 +27,7 @@ app.use(auth);
 
 app.use(cardsRouter);
 app.use(usersRouter);
-app.use('*', (req, res, next) => {
-  next(new NotFoundError('PAGE NOT FOUND'));
-});
+app.use('*', () => { throw new NotFoundError('По вашему запросу ничего не найдено'); });
 app.use(errors());
 app.use(serverError);
 
