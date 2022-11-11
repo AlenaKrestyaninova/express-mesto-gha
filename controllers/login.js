@@ -3,51 +3,38 @@ const bcrypt = require('bcryptjs');
 // const { JWT_SECRET } = require('../utils/key');
 const User = require('../models/user');
 const { signToken } = require('../utils/jwt');
-const {
-  WRONG_DATA_CODE, // 400
-  UNAUTHORIZED, // 401
-  ERROR_SERVER_CODE, // 500
-} = require('../utils/constants');
+const ValidationError = require('../utils/errors/ValidationError'); // 400
+const UnauthorizedError = require('../utils/errors/UnauthorizedError'); // 401
 
 //  Проверка логина  //
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res.status(WRONG_DATA_CODE).send({ message: 'password or email empty' });
+    next(new ValidationError('password or email empty'));
+    return;
   }
   User.findOne({ email }).select('+password')
     .then((user) => {
       bcrypt.compare(password, user.password)
         .then((matched) => {
-          if (!matched) { res.status(UNAUTHORIZED).send({ message: 'Wrong password or email' }); }
+          if (!matched) { return next(new UnauthorizedError('Wrong email or password')); }
           const result = signToken(user._id);
           if (!result) {
-            return res.status(ERROR_SERVER_CODE).send({ message: 'token creation error' });
+            return next(new UnauthorizedError('Wrong email or password'));
           }
-          return res.status(200).send({ data: result });
+          return res
+            .status(200)
+            .cookie('authorization', result, {
+              maxAge: 60 * 60 * 24 * 7,
+              httpOnly: true,
+              sameSite: true,
+            })
+            .send({ result, message: 'Athorization successful' });
         });
     })
-
     .catch((err) => {
-      console.log(err);
-      return res.status(ERROR_SERVER_CODE).send({ message: err.message });
+      next(err);
     });
 };
 
 module.exports = { login };
-
-// User.findUserByCredentials(email, password)
-// .then((user) => {
-//   const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
-//   res.cookie('authorization', token, {
-//     httpOnly: true,
-//     maxAge: 60 * 60 * 24 * 7,
-//     sameSite: true,
-//   }).status(200).send(user);
-// })
-// .catch((err) => {
-//   if (err.code === 11000) {
-//     return res.send({ message: 'Пользователь с такими данными существует' });
-//   }
-//   return res.status(ERROR_SERVER_CODE).send({ message: err.message });
-// });
