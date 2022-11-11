@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const { signToken } = require('../utils/jwt');
 const ValidationError = require('../utils/errors/ValidationError'); // 400
-const UnauthorizedError = require('../utils/errors/UnauthorizedError'); // 401
+const AuthError = require('../utils/errors/AuthError'); // 401
 
 //  Проверка логина  //
 const login = (req, res, next) => {
@@ -16,13 +16,15 @@ const login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        next(new UnauthorizedError('Wrong email or password'));
+        next(new AuthError('Wrong email or password1'));
         return;
       }
       bcrypt.compare(password, user.password).then((match) => {
-        if (!match) { return next(new UnauthorizedError('No such user in BD')); }
+        if (!match) {
+          return next(new AuthError('No such user in DB'));
+        }
         const result = signToken(user._id);
-        if (!result) return next(new UnauthorizedError('Wrong email or password'));
+        if (!result) { return next(new AuthError('Wrong email or password2')); }
         return res
           .status(200)
           .cookie('authorization', result, {
@@ -35,7 +37,7 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.code === 401) {
-        next(new UnauthorizedError('Wrong email or password'));
+        next(new AuthError('Wrong email or password3'));
         return;
       }
       next(err);

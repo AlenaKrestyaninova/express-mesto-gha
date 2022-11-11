@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 const NotFoundError = require('../utils/errors/NotFoundError'); // 404
 const ValidationError = require('../utils/errors/ValidationError'); // 400
-const UnauthorizedError = require('../utils/errors/UnauthorizedError'); // 401
+const AuthError = require('../utils/errors/AuthError'); // 401
 const UserExistError = require('../utils/errors/UserExistError'); // 409
 
 //  Создаем пользователя  //
@@ -82,7 +82,7 @@ const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id).orFail(new Error('NotFound'))
     .then((user) => {
       if (!user) {
-        return next(new UnauthorizedError('Not correct data'));
+        return next(new AuthError('Not correct data'));
       }
       return res.send({
         name: user.name,
