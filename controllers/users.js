@@ -8,7 +8,7 @@ const UnauthorizedError = require('../utils/errors/UnauthorizedError'); // 401
 const UserExistError = require('../utils/errors/UserExistError'); // 409
 
 //  Создаем пользователя  //
-const createUser = (req, res, next) => {
+const createUser = async (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -16,34 +16,36 @@ const createUser = (req, res, next) => {
     next(new ValidationError('password or email empty'));
     return;
   }
-  bcrypt.hash(password, 10)
-    .then((hash) => User.create({
-      email,
-      password: hash,
-      name,
-      about,
-      avatar,
-    }))
-    .then(() => {
-      res.send({
+  try {
+    const hashPassword = await bcrypt.hash(password, 10);
+    const user = await User.findOne({ email });
+    if (user) {
+      next(new UserExistError('Пользователь с таким email уже зарегистрирован'));
+    } else {
+      await User.create({
+        email,
+        password: hashPassword,
+        name,
+        about,
+        avatar,
+      });
+      res.status(200).send({
         user: {
-          email,
-          name,
-          about,
-          avatar,
+          email, name, about, avatar,
         },
       });
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new ValidationError('Not correct data'));
-        return;
-      }
-      if (err.code === 409) {
-        next(new UserExistError(`${req.body.email} - такой пользователь уже зарегистрирован`));
-      }
-      next(err);
-    });
+    }
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      next(new ValidationError('Not correct data'));
+      return;
+    }
+    if (err.code === 11000) {
+      next(new UserExistError(`${req.body.email} - такой пользователь уже зарегистрирован`));
+      return;
+    }
+    next(err);
+  }
 };
 
 //  Получаем всех пользователей  //

@@ -19,24 +19,25 @@ const login = (req, res, next) => {
         next(new UnauthorizedError('Wrong email or password'));
         return;
       }
-      bcrypt.compare(password, user.password)
-        .then((matched) => {
-          if (!matched) { return next(new UnauthorizedError('Wrong email or password')); }
-          const result = signToken(user._id);
-          if (!result) {
-            return next(new UnauthorizedError('Wrong email or password'));
-          }
-          return res
-            .status(200)
-            .cookie('authorization', result, {
-              maxAge: 60 * 60 * 24 * 7,
-              httpOnly: true,
-              sameSite: true,
-            })
-            .send({ result, message: 'Athorization successful' });
-        });
+      bcrypt.compare(password, user.password).then((match) => {
+        if (!match) { return next(new UnauthorizedError('No such user in BD')); }
+        const result = signToken(user._id);
+        if (!result) return next(new UnauthorizedError('Wrong email or password'));
+        return res
+          .status(200)
+          .cookie('authorization', result, {
+            maxAge: 60 * 60 * 24 * 7,
+            httpOnly: true,
+            sameSite: true,
+          })
+          .send({ result, message: 'Authorization succed' });
+      });
     })
     .catch((err) => {
+      if (err.code === 401) {
+        next(new UnauthorizedError('Wrong email or password'));
+        return;
+      }
       next(err);
     });
 };
