@@ -1,4 +1,4 @@
-const serverError = (err, res, next) => {
+const serverError = (err, req, res, next) => {
   const { statusCode = 500, message } = err;
   res
     .status(statusCode)

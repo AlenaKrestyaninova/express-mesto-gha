@@ -17,25 +17,29 @@ const createUser = async (req, res, next) => {
     return;
   }
   try {
-    const hashPassword = await bcrypt.hash(password, 10);
     const user = await User.findOne({ email });
     if (user) {
       next(new UserExistError('Пользователь с таким email уже зарегистрирован'));
     } else {
-      await User.create({
+      const hashPassword = await bcrypt.hash(password, 10);
+      const newUser = await User.create({
         email,
         password: hashPassword,
         name,
         about,
         avatar,
       });
+      const {
+        name: userName, about: userAbout, avatar: userAvatar, email: userEmail,
+      } = newUser;
       res.status(200).send({
         user: {
-          email, name, about, avatar,
+          name: userName, about: userAbout, avatar: userAvatar, email: userEmail,
         },
       });
     }
   } catch (err) {
+    console.log(err);
     if (err.name === 'ValidationError') {
       next(new ValidationError('Not correct data'));
       return;
