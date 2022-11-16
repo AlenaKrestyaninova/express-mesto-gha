@@ -45,9 +45,10 @@ const deleteCard = (req, res, next) => {
         next(new NotAllowedError('You can not delete this card'));
         return;
       }
-      Card.findByIdAndRemove(req.params.cardId);
+      Card.findByIdAndRemove(req.params.cardId)
+        .then(() => { res.send(card); })
+        .catch((err) => { next(err); });
     })
-    .then((card) => { res.send(card); })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Not correct data'));
