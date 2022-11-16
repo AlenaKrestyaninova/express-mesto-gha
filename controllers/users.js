@@ -12,10 +12,6 @@ const createUser = async (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  if (!email || !password) {
-    next(new ValidationError('password or email empty'));
-    return;
-  }
   try {
     const user = await User.findOne({ email });
     if (user) {
@@ -39,13 +35,8 @@ const createUser = async (req, res, next) => {
       });
     }
   } catch (err) {
-    console.log(err);
     if (err.name === 'ValidationError') {
       next(new ValidationError('Not correct data'));
-      return;
-    }
-    if (err.code === 11000) {
-      next(new UserExistError(`${req.body.email} - такой пользователь уже зарегистрирован`));
       return;
     }
     next(err);
@@ -74,7 +65,7 @@ const getUserById = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         next(new ValidationError('Not correct data'));
       }
       next(err);
@@ -83,7 +74,7 @@ const getUserById = (req, res, next) => {
 
 //  Получаем текущего пользователя  //
 const getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id).orFail(new Error('NotFound'))
+  User.findById(req.user._id).orFail(new NotFoundError('User with this id not found'))
     .then((user) => {
       if (!user) {
         return next(new AuthError('Not correct data'));
@@ -97,9 +88,6 @@ const getCurrentUser = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        return next(new NotFoundError('User with this id not found'));
-      }
       if (err.name === 'CastError') {
         return next(new ValidationError('Not correct data'));
       }

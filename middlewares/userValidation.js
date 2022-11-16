@@ -1,4 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
+const regex = require('../utils/regex');
 
 const validateLogin = celebrate({
   body: Joi.object().keys({
@@ -11,7 +12,7 @@ const validateUserCreate = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(/[-a-zA-Z0-9@:%_+.~#?&/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&/=]*)?/i),
+    avatar: Joi.string().regex(regex),
     email: Joi.string().required().email({ tlds: { allow: false } }),
     password: Joi.string().required(),
   }),
@@ -32,7 +33,7 @@ const validateProfileUpdate = celebrate({
 
 const validateAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().regex(/[-a-zA-Z0-9@:%_+.~#?&/=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_+.~#?&/=]*)?/i),
+    avatar: Joi.string().required().regex(regex),
   }),
 });
 

@@ -3,16 +3,11 @@ const bcrypt = require('bcryptjs');
 // const { JWT_SECRET } = require('../utils/key');
 const User = require('../models/user');
 const { signToken } = require('../utils/jwt');
-const ValidationError = require('../utils/errors/ValidationError'); // 400
 const AuthError = require('../utils/errors/AuthError'); // 401
 
 //  Проверка логина  //
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    next(new ValidationError('password or email empty'));
-    return;
-  }
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
@@ -28,7 +23,7 @@ const login = (req, res, next) => {
         return res
           .status(200)
           .cookie('authorization', result, {
-            maxAge: 60 * 60 * 24 * 7,
+            maxAge: 604800,
             httpOnly: true,
             sameSite: true,
           })
